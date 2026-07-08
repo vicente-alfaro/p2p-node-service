@@ -1,5 +1,8 @@
 package com.p2pvideo.node.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +13,7 @@ public class NodeProperties {
     private String id;
     private String fragmentsPath;
     private String outputPath;
+    private Map<String, String> peers = new HashMap<>();
 
     public NodeProperties() {
     }
@@ -36,5 +40,13 @@ public class NodeProperties {
 
     public void setOutputPath(String outputPath) {
         this.outputPath = outputPath;
+    }
+
+    public Map<String, String> getPeers() {
+        return peers;
+    }
+
+    public void setPeers(Map<String, String> peers) {
+        this.peers = peers;
     }
 }

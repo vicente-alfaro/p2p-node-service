@@ -3,6 +3,7 @@ package com.p2pvideo.node.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.springframework.core.io.FileSystemResource;
@@ -42,6 +43,23 @@ public class FragmentStorageService {
         }
 
         return new FileSystemResource(fragmentPath);
+    }
+
+    public void saveFragment(String fragmentName, byte[] content) throws IOException {
+        Path fragmentsDirectory = Path.of(nodeProperties.getFragmentsPath());
+
+        if (!Files.exists(fragmentsDirectory)) {
+            Files.createDirectories(fragmentsDirectory);
+        }
+
+        Path fragmentPath = fragmentsDirectory.resolve(fragmentName);
+
+        Files.write(
+                fragmentPath,
+                content,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     public Path getFragmentPath(String fragmentName) {

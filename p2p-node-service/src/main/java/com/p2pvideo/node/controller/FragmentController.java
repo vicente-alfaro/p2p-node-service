@@ -9,12 +9,17 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.p2pvideo.node.config.NodeProperties;
+import com.p2pvideo.node.dto.DownloadRequest;
+import com.p2pvideo.node.dto.DownloadResponse;
 import com.p2pvideo.node.dto.NodeInfoResponse;
 import com.p2pvideo.node.service.FragmentStorageService;
+import com.p2pvideo.node.service.PeerClientService;
 
 @RestController
 @RequestMapping("/api")
@@ -22,13 +27,16 @@ public class FragmentController {
 
     private final NodeProperties nodeProperties;
     private final FragmentStorageService fragmentStorageService;
+    private final PeerClientService peerClientService;
 
     public FragmentController(
             NodeProperties nodeProperties,
-            FragmentStorageService fragmentStorageService
+            FragmentStorageService fragmentStorageService,
+            PeerClientService peerClientService
     ) {
         this.nodeProperties = nodeProperties;
         this.fragmentStorageService = fragmentStorageService;
+        this.peerClientService = peerClientService;
     }
 
     @GetMapping("/node")
@@ -57,5 +65,41 @@ public class FragmentController {
                         "attachment; filename=\"" + fragmentName + "\""
                 )
                 .body(resource);
+    }
+
+    @PostMapping("/download")
+    public ResponseEntity<DownloadResponse> downloadFromPeer(@RequestBody DownloadRequest request) {
+        try {
+            byte[] fragmentBytes = peerClientService.downloadFragmentFromPeer(
+                    request.getFromNodeId(),
+                    request.getFragmentName()
+            );
+
+            fragmentStorageService.saveFragment(
+                    request.getFragmentName(),
+                    fragmentBytes
+            );
+
+            DownloadResponse response = new DownloadResponse(
+                    nodeProperties.getId(),
+                    request.getFragmentName(),
+                    request.getFromNodeId(),
+                    "DOWNLOADED",
+                    "Fragment downloaded successfully"
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            DownloadResponse response = new DownloadResponse(
+                    nodeProperties.getId(),
+                    request.getFragmentName(),
+                    request.getFromNodeId(),
+                    "ERROR",
+                    e.getMessage()
+            );
+
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }
