@@ -1,4 +1,13 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - p2p-network
+
   node-a:
     build: ./p2p-node-service
     container_name: node-a
@@ -11,6 +20,10 @@ services:
       - NODE_OUTPUT_PATH=/data/output
       - NODE_PEERS_NODE_B=http://node-b:8080
       - NODE_PEERS_NODE_C=http://node-c:8080
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     volumes:
       - ./data/node-a/fragments:/data/fragments
       - ./data/node-a/output:/data/output
@@ -29,6 +42,10 @@ services:
       - NODE_OUTPUT_PATH=/data/output
       - NODE_PEERS_NODE_A=http://node-a:8080
       - NODE_PEERS_NODE_C=http://node-c:8080
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     volumes:
       - ./data/node-b/fragments:/data/fragments
       - ./data/node-b/output:/data/output
@@ -47,6 +64,10 @@ services:
       - NODE_OUTPUT_PATH=/data/output
       - NODE_PEERS_NODE_A=http://node-a:8080
       - NODE_PEERS_NODE_B=http://node-b:8080
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     volumes:
       - ./data/node-c/fragments:/data/fragments
       - ./data/node-c/output:/data/output

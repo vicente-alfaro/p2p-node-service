@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.p2pvideo.node.config.NodeProperties;
 import com.p2pvideo.node.dto.DownloadRequest;
 import com.p2pvideo.node.dto.DownloadResponse;
+import com.p2pvideo.node.dto.FragmentAvailableEvent;
 import com.p2pvideo.node.dto.NodeInfoResponse;
+import com.p2pvideo.node.service.FragmentEventPublisher;
 import com.p2pvideo.node.service.FragmentStorageService;
 import com.p2pvideo.node.service.PeerClientService;
 
@@ -28,15 +30,18 @@ public class FragmentController {
     private final NodeProperties nodeProperties;
     private final FragmentStorageService fragmentStorageService;
     private final PeerClientService peerClientService;
+    private final FragmentEventPublisher fragmentEventPublisher;
 
     public FragmentController(
             NodeProperties nodeProperties,
             FragmentStorageService fragmentStorageService,
-            PeerClientService peerClientService
+            PeerClientService peerClientService,
+            FragmentEventPublisher fragmentEventPublisher
     ) {
         this.nodeProperties = nodeProperties;
         this.fragmentStorageService = fragmentStorageService;
         this.peerClientService = peerClientService;
+        this.fragmentEventPublisher = fragmentEventPublisher;
     }
 
     @GetMapping("/node")
@@ -79,6 +84,14 @@ public class FragmentController {
                     request.getFragmentName(),
                     fragmentBytes
             );
+
+            FragmentAvailableEvent event = new FragmentAvailableEvent(
+                    nodeProperties.getId(),
+                    request.getFragmentName(),
+                    "Fragment available"
+            );
+
+            fragmentEventPublisher.publishFragmentAvailable(event);
 
             DownloadResponse response = new DownloadResponse(
                     nodeProperties.getId(),
